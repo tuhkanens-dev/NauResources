@@ -1,0 +1,7 @@
+resources:
+  'asset-pack':
+    url: ""
+    sha256: ""
+  'test-asset-pack':
+    url: ""
+    sha256: ""
