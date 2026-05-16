@@ -2,6 +2,7 @@ package dev.nautilus.resources.manager
 
 import dev.nautilus.resources.data.LangData
 import org.bukkit.configuration.file.YamlConfiguration
+import java.util.jar.JarFile
 
 object FileLangManager {
 
@@ -9,37 +10,30 @@ object FileLangManager {
     private val dataFolder = plugin.dataFolder
 
     private lateinit var CURRENT_LANG_FILE: LangData
-    private lateinit var langFiles: MutableList<LangData>
+    private var langFiles: MutableList<LangData> = mutableListOf()
 
     private const val LANG_FOLDER = "lang"
 
     fun loadLanguages() {
 
-        langFiles = mutableListOf()
+        val targetLangFolder = dataFolder.resolve(LANG_FOLDER).apply { mkdirs() }
+        val jarPath = plugin.javaClass.protectionDomain.codeSource.location.toURI().path
 
-        if (!dataFolder.exists()) {
-            dataFolder.mkdir()
-        }
+        JarFile(jarPath).use { jar ->
+            jar.entries().asSequence()
+                .filter { !it.isDirectory && it.name.startsWith("$LANG_FOLDER/") }
+                .forEach { entry ->
+                    val targetFile = targetLangFolder.resolve(entry.name.removePrefix("$LANG_FOLDER/"))
 
-        val loader = Thread.currentThread().contextClassLoader
-        val targetLangFolder = dataFolder.resolve(LANG_FOLDER).apply { mkdir() }
+                    if (!targetFile.exists()) {
+                        jar.getInputStream(entry).use { input ->
+                            targetFile.writeBytes(input.readBytes())
+                        }
+                    }
 
-        // ['en.yml', 'ru.yml']
-        val fileNames = loader.getResourceAsStream(LANG_FOLDER)
-            ?.bufferedReader()?.readLines() ?: return
-
-        fileNames.forEach { fileName ->
-            val targetFile = targetLangFolder.resolve(fileName)
-            if (!targetFile.exists()) {
-                loader.getResourceAsStream("$LANG_FOLDER/$fileName")?.use { input ->
-                    targetFile.writeBytes(input.readBytes())
+                    val yaml = YamlConfiguration.loadConfiguration(targetFile)
+                    langFiles.add(LangData(name = targetFile.nameWithoutExtension, yaml = yaml))
                 }
-            }
-
-            val yamlConfiguration: YamlConfiguration = YamlConfiguration.loadConfiguration(targetFile)
-            val langName = fileName.removeSuffix(".yml")
-
-            langFiles.add(LangData(name = langName, yaml = yamlConfiguration))
         }
 
     }
