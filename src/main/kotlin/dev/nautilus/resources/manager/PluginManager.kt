@@ -2,6 +2,7 @@ package dev.nautilus.resources.manager
 
 import dev.nautilus.resources.Main
 import net.kyori.adventure.text.minimessage.MiniMessage
+import org.bukkit.configuration.file.FileConfiguration
 import java.io.File
 
 object PluginManager {

@@ -14,7 +14,9 @@ object ConfigManager {
     }
 
     private fun setCurrentLanguage() {
-        val lang = config.getString("language") ?: throw IllegalStateException("The default language was not found in the config.yml!")
+        val lang = config.getString("language")
+            ?: throw IllegalStateException("'language' not found in config.yml!")
+
         FileLangManager.setCurrentLanguage(lang)
     }
 

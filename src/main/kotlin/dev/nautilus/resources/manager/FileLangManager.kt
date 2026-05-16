@@ -54,7 +54,8 @@ object FileLangManager {
     }
 
     fun setCurrentLanguage(name: String) {
-        CURRENT_LANG_FILE = getLanguage(name) ?: return
+        CURRENT_LANG_FILE = getLanguage(name)
+            ?: throw IllegalStateException("Language '$name' not found!")
     }
 
 }
